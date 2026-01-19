@@ -1,0 +1,36 @@
+{
+    "name": "alves/sped-pos",
+    "description": "Biblioteca para impressão da DANFCe em impressoras térmicas compatíveis.",
+    "type": "library",
+    "keywords": ["nfe", "nfce", "sped", "nfephp"],
+    "homepage": "https://github.com/alves/sped-pos",
+    "license": ["LGPL-3.0-or-later", "GPL-3.0-or-later", "MIT"],
+    "authors": [
+        {
+            "name": "Anderson Alves",
+            "email": "andersonalves.dev@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "config": {
+        "platform": {
+            "php": "7.0.0"
+        }
+    },
+    "require": {
+        "php": ">=7.0",
+        "ext-simplexml": "*",
+        "ext-libxml": "*",
+        "alves/escpos-php": "^1.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.4",
+        "phpunit/phpunit": "^6.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Alves\\POS\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
