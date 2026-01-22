@@ -134,6 +134,10 @@ class DanfcePos
         $this->printer->setFont(Printer::FONT_B);
 
         $this->parteI();
+
+        $this->printer->setLineSpacing(20);
+
+
         $this->parteII();
         $this->parteIII();
         $this->parteIV();
@@ -181,7 +185,6 @@ class DanfcePos
         if (!empty($this->logo)) {
             try {
                 $this->printer->bitImage($this->logo);
-                $this->printer->feed();
             } catch (\Throwable $th) {
                 // Não interrompe impressão
             }
@@ -218,12 +221,12 @@ class DanfcePos
         if (!empty($cep)) {
             $linhaCidade .= ' - CEP: ' . $this->formatarCEP($cep);
         }
-        $this->printer->text($linhaCidade . "\n");
+        $this->printer->text($linhaCidade);
 
         /** TELEFONE */
         if (!empty($fone)) {
             $this->printer->text(
-                'Fone: ' . $this->formatarFone($fone) . "\n"
+                '- Fone: ' . $this->formatarFone($fone) . "\n"
             );
         }
 
@@ -245,7 +248,7 @@ class DanfcePos
         $titulo = 'DOCUMENTO AUXILIAR DA NOTA FISCAL DE CONSUMIDOR ELETRÔNICA';
 
         // $this->printer->setEmphasis(true);
-        $this->printer->text($titulo . "\n");
+        $this->printer->text($titulo . "\n" . "\n");
         // $this->printer->setEmphasis(false);
 
         // $this->separador();
@@ -266,10 +269,10 @@ class DanfcePos
         // $this->separador();
 
         // Cabeçalho das colunas
-        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
         $this->printer->setEmphasis(true);
         $this->printer->text(
-            "#  Cód   Descrição           Qtd Un  Valor    Total\n"
+            "#    Cód          Descrição    Qtd    Un         Valor    Total\n\n"
         );
         $this->printer->setEmphasis(false);
 
@@ -299,23 +302,20 @@ class DanfcePos
             $seqItem = $this->strPad($seq, 3, '0', STR_PAD_LEFT);
 
             // Linha 1 – Seq (3) + Código + Descrição (linha cheia)
-            $linha1 =
-                $seqItem . ' ' .
-                $this->strPad($cProd, 6) . ' ' .
-                $this->strPad($xProd, 36);
+            $linha1 = $seqItem . '  ' . $this->strPad($cProd, 6, '0', STR_PAD_LEFT) . ' ' . $this->strPad($xProd, 48);
 
-            $this->printer->text($linha1 . "\n");
+            $this->printer->text($linha1 . "\n" . "\n");
 
             // Linha 2 – Quantidade x Valor Unitário         Total
             $linha2 =
-                $this->strPad('', 15) .
+                $this->strPad('', 30) .
                 $this->strPad(number_format($qCom, 2, ',', '.'), 6, ' ', STR_PAD_LEFT) .
-                ' ' . $this->strPad($uCom, 3) .
-                ' x ' .
-                $this->strPad(number_format($vUnCom, 2, ',', '.'), 7, ' ', STR_PAD_LEFT) .
-                $this->strPad(number_format($vProd, 2, ',', '.'), 14, ' ', STR_PAD_LEFT);
+                '  ' . $this->strPad($uCom, 3) .
+                '   x  ' .
+                $this->strPad(number_format($vUnCom, 2, ',', '.'), 6, ' ', STR_PAD_LEFT) .
+                $this->strPad(number_format($vProd, 2, ',', '.'), 10, ' ', STR_PAD_LEFT);
 
-            $this->printer->text($linha2 . "\n");
+            $this->printer->text($linha2 . "\n" . "\n");
 
             // Observações
             if (!empty($obsItem)) {
@@ -344,7 +344,7 @@ class DanfcePos
         // =========================
         // TOTALIZADORES
         // =========================
-        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        // $this->printer->setJustification(Printer::JUSTIFY_CENTER);
 
         $this->printer->setEmphasis(true);
 
@@ -406,16 +406,12 @@ class DanfcePos
 
     protected function headerFormasPagamento()
     {
-        $cols     = $this->colunasPagamento();
-        $colDesc  = $cols[0];
-        $colValor = $cols[1];
-
         $linha =
-            $this->strPad('FORMA DE PAGAMENTO', $colDesc, ' ', STR_PAD_RIGHT) .
-            $this->strPad('VALOR PAGO', $colValor, ' ', STR_PAD_LEFT);
+            $this->strPad('FORMA DE PAGAMENTO', 40, ' ', STR_PAD_RIGHT) .
+            $this->strPad('VALOR PAGO', 22, ' ', STR_PAD_LEFT);
 
         $this->printer->setEmphasis(true);
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
         $this->printer->setEmphasis(false);
     }
 
@@ -423,7 +419,11 @@ class DanfcePos
     {
         $pag = $this->nfce->infNFe->pag->detPag;
 
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+
         $this->separador();
+
+        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
 
         // Cabeçalho obrigatório
         $this->headerFormasPagamento();
@@ -451,7 +451,7 @@ class DanfcePos
         ) {
             $this->printer->setEmphasis(true);
             $this->printFormaPagamento(
-                'TROCO',
+                'TROCO R$',
                 (float) $this->nfce->infNFe->pag->vTroco
             );
             $this->printer->setEmphasis(false);
@@ -473,7 +473,7 @@ class DanfcePos
         if ($tpAmb === 2) {
             $this->printer->setEmphasis(true);
             $this->printer->text(
-                "EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL\n"
+                "EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL\n\n"
             );
             $this->printer->setEmphasis(false);
         }
@@ -482,7 +482,7 @@ class DanfcePos
         $tpEmis = (int) $this->nfce->infNFe->ide->tpEmis;
         if ($tpEmis !== 1) {
             $this->printer->setEmphasis(true);
-            $this->printer->text("EMITIDA EM CONTINGÊNCIA\n");
+            $this->printer->text("EMITIDA EM CONTINGÊNCIA\n\n");
             $this->printer->setEmphasis(false);
         }
 
@@ -503,12 +503,12 @@ class DanfcePos
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
 
         // Consulta
-        $this->printer->text("Consulte pela chave de acesso em\n");
-        $this->printer->text($this->uri . "\n");
+        $this->printer->text("Consulte pela chave de acesso em\n\n");
+        $this->printer->text($this->uri . "\n" . "\n");
 
         // Chave de acesso mascarada (11 blocos de 4)
         $this->printer->text(
-            $this->mascaraChaveAcesso($chave) . "\n"
+            $this->mascaraChaveAcesso($chave) . "\n" . "\n"
         );
 
         /**
@@ -519,11 +519,11 @@ class DanfcePos
             trim((string) $this->protNFe->infProt->xMsg) !== ''
         ) {
             $this->printer->setEmphasis(true);
-            $this->printer->text("INFORMAÇÕES ADICIONAIS\n");
+            $this->printer->text("INFORMAÇÕES ADICIONAIS\n\n");
             $this->printer->setEmphasis(false);
 
             $this->printer->text(
-                trim((string) $this->protNFe->infProt->xMsg) . "\n"
+                trim((string) $this->protNFe->infProt->xMsg) . "\n" . "\n"
             );
             $this->printer->feed(1);
         }
@@ -533,29 +533,29 @@ class DanfcePos
          */
         if (!isset($this->nfce->infNFe->dest)) {
             $this->printer->setEmphasis(true);
-            $this->printer->text("CONSUMIDOR NÃO IDENTIFICADO\n");
+            $this->printer->text("CONSUMIDOR NÃO IDENTIFICADO\n\n");
             $this->printer->setEmphasis(false);
             return;
         }
 
         $dest = $this->nfce->infNFe->dest;
 
+        // Documentos
+        if (!empty($dest->CNPJ)) {
+            $this->printer->text("CONSUMIDOR CNPJ: " . $this->formatarCNPJ($dest->CNPJ) . "\n" . "\n");
+        }
+
+        if (!empty($dest->CPF)) {
+            $this->printer->text("CONSUMIDOR CPF: " . $this->formatarCPF($dest->CPF) . "\n" . "\n");
+        }
+
+        if (!empty($dest->idEstrangeiro)) {
+            $this->printer->text("CONSUMIDOR ID. ESTRANGEIRO: " . $dest->idEstrangeiro . "\n" . "\n");
+        }
+
         // Nome
         if (!empty($dest->xNome)) {
-            $this->printer->text((string) $dest->xNome . "\n");
-        }
-
-        // Documentos
-        if (!empty($cnpj)) {
-            $this->printer->text("CONSUMIDOR CNPJ: " . $this->formatarCNPJ($cnpj) . "\n");
-        }
-
-        if (!empty($cpf)) {
-            $this->printer->text("CONSUMIDOR CPF: " . $this->formatarCPF($cpf) . "\n");
-        }
-
-        if (!empty($idEstrangeiro)) {
-            $this->printer->text("CONSUMIDOR ID. ESTRANGEIRO: " . $idEstrangeiro . "\n");
+            $this->printer->text((string) $dest->xNome . "\n" . "\n");
         }
 
         /**
@@ -570,7 +570,7 @@ class DanfcePos
             );
 
             if ($linha1 !== ',') {
-                $this->printer->text($linha1 . "\n");
+                $this->printer->text($linha1 . "\n" . "\n");
             }
 
             $linha2 = '';
@@ -588,7 +588,7 @@ class DanfcePos
             }
 
             if ($linha2 !== '') {
-                $this->printer->text($linha2 . "\n");
+                $this->printer->text($linha2 . "\n" . "\n");
             }
         }
     }
@@ -611,7 +611,7 @@ class DanfcePos
             ' | ' . date('d/m/Y H:i:s', strtotime($dhEmi));
 
         $this->printer->setEmphasis(true);
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
         $this->printer->setEmphasis(false);
 
         /**
@@ -626,20 +626,20 @@ class DanfcePos
 
             if ($nProt !== '') {
                 $this->printer->text(
-                    "Protocolo de autorização: " . $nProt . "\n"
+                    "Protocolo de autorização: " . $nProt . "\n" . "\n"
                 );
             }
 
             if ($dhRecbto !== '') {
                 $this->printer->text(
                     "Data de autorização: " .
-                        date('d/m/Y H:i:s', strtotime($dhRecbto)) . "\n"
+                        date('d/m/Y H:i:s', strtotime($dhRecbto)) . "\n" . "\n"
                 );
             }
         } else {
             $this->printer->setEmphasis(true);
             $this->printer->text(
-                "NOTA FISCAL INVÁLIDA - SEM PROTOCOLO\n"
+                "NOTA FISCAL INVÁLIDA - SEM PROTOCOLO\n" . "\n"
             );
             $this->printer->setEmphasis(false);
         }
@@ -686,26 +686,14 @@ class DanfcePos
         }
 
         // Linha principal
-        $linha =
-            $this->strPad(
-                'Informação dos Tributos:',
-                35,
-                ' ',
-                STR_PAD_RIGHT
-            ) .
-            $this->strPad(
-                'R$ ' . number_format($vTotTrib, 2, ',', '.'),
-                13,
-                ' ',
-                STR_PAD_LEFT
-            );
+        $linha = 'Informação dos Tributos: R$ ' . number_format($vTotTrib, 2, ',', '.');
 
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
 
         // Fonte legal
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
         $this->printer->text(
-            'Fonte IBPT - Lei Federal 12.741/2012' . "\n"
+            'Fonte IBPT - Lei Federal 12.741/2012' . "\n" . "\n"
         );
 
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -734,7 +722,7 @@ class DanfcePos
             // Normaliza separadores comuns
             $infCpl = str_replace(
                 array(';', '|'),
-                "\n",
+                "\n\n",
                 $infCpl
             );
 
@@ -748,7 +736,7 @@ class DanfcePos
                 true
             );
 
-            $this->printer->text($linhas . "\n");
+            $this->printer->text($linhas . "\n" . "\n");
         }
 
         $this->separador();
@@ -992,25 +980,17 @@ class DanfcePos
 
     protected function printFormaPagamento(string $descricao, float $valor)
     {
-        $cols     = $this->colunasPagamento();
-        $colDesc  = $cols[0];
-        $colValor = $cols[1];
-
-        // Modo compacto remove textos longos
-        if ($this->modeloImpressao == 2) {
-            $descricao = substr($descricao, 0, $colDesc);
-        }
 
         $linha =
-            $this->strPad($descricao, $colDesc, ' ', STR_PAD_RIGHT) .
+            $this->strPad($descricao, 42, ' ', STR_PAD_RIGHT) .
             $this->strPad(
                 'R$ ' . number_format($valor, 2, ',', '.'),
-                $colValor,
+                20,
                 ' ',
                 STR_PAD_LEFT
             );
 
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
     }
 
     protected function printValorAuxItem(string $label, float $valor)
@@ -1024,7 +1004,7 @@ class DanfcePos
                 STR_PAD_LEFT
             );
 
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
     }
 
     protected function printTotalLinhaFiscal(string $label, float $valor, string $operador = '+', int $casasDecimais = 2, int $fValue = 0)
@@ -1034,14 +1014,14 @@ class DanfcePos
             $valorFormatado = ($operador != '' ? ($operador === '-' ? '- ' : '+ ') : '')
                 . number_format(abs($valor), $casasDecimais, ',', '.');
         } else {
-            $valorFormatado = $this->strPad($valor, 3, ' ', STR_PAD_LEFT);
+            $valorFormatado = str_pad($valor, 3, '0', STR_PAD_LEFT);
         }
 
         $linha =
-            str_pad($label, 28, ' ', STR_PAD_RIGHT) .
+            str_pad($label, 42, ' ', STR_PAD_RIGHT) .
             str_pad($valorFormatado, 20, ' ', STR_PAD_LEFT);
 
-        $this->printer->text($linha . "\n");
+        $this->printer->text($linha . "\n" . "\n");
     }
 
     protected function printObservacaoItem(string $texto, int $largura = 48)
@@ -1057,7 +1037,7 @@ class DanfcePos
                 $str = '   Obs: ';
             }
 
-            $this->printer->text($str . $linha . "\n");
+            $this->printer->text($str . $linha . "\n" . "\n");
 
             $count++;
         }
